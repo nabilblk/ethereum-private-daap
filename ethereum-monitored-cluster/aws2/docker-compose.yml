@@ -1,0 +1,37 @@
+version: '2'
+services:
+  bootstrap:
+    build: monitored-geth-client
+    restart: on-failuree
+    container_name: bootstrap_aws2
+    hostname: bootstrap_aws2
+    entrypoint: /root/start.sh
+    command: '--dev --maxpeers 25 --datadir=~/.ethereum/devchain --identity "BOOTSTRAP_AWS2_NODE" --ipcapi="admin,db,eth,debug,miner,net,shh,txpool,personal,web3" --rpcapi "db,personal,eth,net,web3" --port="30303" --rpccorsdomain="*" --networkid=456789 --rpc --rpcaddr="0.0.0.0"'
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "30303:30303"
+      - "30303:30303/udp"
+      - "8545:8545"
+  eth:
+    build: monitored-geth-client
+    restart: on-failure
+    links:
+      - bootstrap
+    entrypoint: /root/start.sh
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    command: --dev --maxpeers 25 --datadir=~/.ethereum/devchain --identity "ETH_AWS2_NODE" --rpccorsdomain='*' --networkid=456789 --rpc
+  scope:
+    image: weaveworks/scope:latest
+    container_name: weave-scope
+    volumes:
+      - '/var/run/:/var/run:rw'
+    command:
+      - '--probe.docker'
+      - 'true'
+    network_mode: 'host'
+    pid: 'host'
+    ports:
+      - '4040:4040'
+    privileged: true
