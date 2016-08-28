@@ -38,7 +38,7 @@ window.onload = function() {
 
         displayAccounts();
 
-        //refreshProposals();
+        refreshProposals();
     });
 }
 
@@ -65,6 +65,17 @@ function newMember(){
     })
     console.log("Transaction sent");
 }
+function newProposal(){
+    var dem = Democracy.deployed();
+    var newProposal = document.getElementById("newProposalField").value;
+
+    dem.addProposal(newProposal, {from: account}).then(function(res){
+        console.log('Done!');
+        console.log('res :', res);
+    })
+    console.log("Transaction sent");
+}
+
 
 function refreshProposals() {
     var dem = Democracy.deployed();

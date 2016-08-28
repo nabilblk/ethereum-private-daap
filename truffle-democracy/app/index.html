@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>MetaCoin - Default Truffle App</title>
+  <title>Democracy App</title>
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
   <link href="./app.css" rel='stylesheet' type='text/css'>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
@@ -9,16 +9,22 @@
 </head>
 <body>
   <h1>Democracy</h1>
+  <br>
   <code id="addresses"></code>
   <br>
-  <h3>Nouvelle durée de vote</h3>
+  <h3>Add Voting time</h3>
   <input type="number" id="newVotingTimeField"></input>
   <button onclick="newVotingTime()">Ajouter</button>
 
   <br>
-  <h3>Nouveau Membre</h3>
+  <h3>New Membre</h3>
   <input type="text" id="newMemberField"/>
-  <button onClick="newMember()">Ajouter</button>
+  <button onClick="newMember()">Add</button>
+
+  <br>
+  <h3>New proposal</h3>
+  <input type="text" id="newProposalField"/>
+  <button onClick="newProposal()">Add</button>
 
   <br>
   <h3>Proposals</h3>

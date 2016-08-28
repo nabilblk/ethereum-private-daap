@@ -1,16 +1,17 @@
 contract Democracy {
-    uint public votingTimeInMinutes ;
-
-    // The owner of the contract
+    // The voting time Limit
+    uint public votingTimeInMinutes;
+    // The Owner of the smart contract and the leader of the voting operation
+    // He can add members and give the right to vote
     address public owner;
 
-    // The voters (Array of adress / Yes/NO can vote)
+    // The member ho have the right to vote : Array of Adress/Bool(Yes/No Can vote)
     mapping (address => bool) public members;
 
-    // A Liste of proposal
-    Proposal[] proposals;
+    // The proposals
+    Proposal[] public proposals;
 
-    // Structure of a proposal
+    // A complex type to define the proposal structure
     struct Proposal {
         string description;
         mapping (address => bool) voted;
@@ -19,90 +20,87 @@ contract Democracy {
         bool adopted;
     }
 
-    // Security Stuff : Auth Owner Only
-    modifier ownerOnly(){
-        if (msg.sender != owner) throw;
+    // Proposal Rule : if the proposal to that index is not open to voting then the function is not executed
+    modifier isOpen(uint index) {
+        if(now > proposals[index].end) throw;
         _
     }
 
-   // Security Stuff : Auth voters Only
-   modifier memberOnly(){
-        if (!members[msg.sender]) throw;
+    // Proposal Rule : The inverse
+    modifier isClosed(uint index) {
+        if(now < proposals[index].end) throw;
         _
     }
 
-    // Constructor
+    // Voting rule : If the Account msg.sender already vote for this proposal , the function is not executed
+    modifier didNotVoteYet(uint index) {
+        if(proposals[index].voted[msg.sender]) throw;
+        _
+    }
+
+    // Security Rule : On the owner can execute the function
+    modifier ownerOnly() {
+        if(msg.sender != owner) throw;
+        _
+    }
+
+    // Security Rule : On a member can execute the function
+    modifier memberOnly() {
+        if(!members[msg.sender]) throw;
+        _
+    }
+
+    // Return the number of proposal
+    function nbProposals() constant returns(uint nbProposals) {
+        nbProposals = proposals.length;
+    }
+    // Constructor of the contract
     function Democracy(uint votingTime) {
         owner = msg.sender;
         setVotingTime(votingTime);
     }
 
-      // Function Of updating Voting Limit time
+    // "Setter" VotingTime
     function setVotingTime(uint newVotingTime) ownerOnly() {
         votingTimeInMinutes = newVotingTime;
     }
 
-    // Add voters
+    // Add members
     function addMember(address newMember) ownerOnly() {
         members[newMember] = true;
     }
 
-
-    // Add a proposal
-    function addProposal(string description) {
+    // Add proposal
+    function addProposal(string description) memberOnly() {
         uint proposalID = proposals.length++;
-
         Proposal p = proposals[proposalID];
-
-        // Populate the description
         p.description = description;
-
-        // fix the end vote time
-        // now is the timestamp of the last mined block
         p.end = now + votingTimeInMinutes * 1 minutes;
+        // p.adopted = false, p.votes = [], etc...
     }
 
-    // Vote on a proposal
+    // Vote for a proposal
     function vote(uint index, bool vote) memberOnly() isOpen(index) didNotVoteYet(index) {
+        // push the vote to the list of vote
         proposals[index].votes.push(vote);
+        // Add the voters to the mapping of the voters
         proposals[index].voted[msg.sender] = true;
     }
 
-    // Get the result for a vote
     function executeProposal(uint index) isClosed(index) {
-        uint yes;
+        uint aye;
         uint no;
         bool[] votes = proposals[index].votes;
-
-        // On compte les pour et les contre
+        // Count Yes and No
         for(uint counter = 0; counter < votes.length; counter++) {
             if(votes[counter]) {
-                yes++;
+                aye++;
             } else {
                 no++;
             }
         }
-        if(yes > no) {
+        if(aye > no) {
            proposals[index].adopted = true;
         }
     }
-
-    // Rules : if a proposal of the index is not open , the function will not be executed
-    modifier isOpen(uint index) {
-       if(now > proposals[index].end) throw;
-       _
-    }
-
-    // Rule : if a proposal of the index is closed for voting  , the function will not be executed
-    modifier isClosed(uint index) {
-       if(now < proposals[index].end) throw;
-       _
-    }
-
-    // if the account msg.sender already vote for this proposal the function will not be executed
-    modifier didNotVoteYet(uint index) {
-       if(proposals[index].voted[msg.sender]) throw;
-       _
-    }
-
 }
